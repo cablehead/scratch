@@ -85,7 +85,7 @@ def session(hub, path):
                 print 'eval:', name
                 result = eval(content, globals(), local)
                 print result
-            except Exception, e:
+            except Exception:
                 traceback.print_exc()
 
     def run_data(ch):
