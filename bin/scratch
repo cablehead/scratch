@@ -12,6 +12,7 @@ Usage:
 __version__ = '0.0.1'
 
 
+import traceback
 import importlib
 import sys
 import os
@@ -81,12 +82,11 @@ def session(hub, path):
     def run_eval(ch):
         for name, content in ch:
             try:
-                result = eval(content, globals(), local)
                 print 'eval:', name
+                result = eval(content, globals(), local)
                 print result
             except Exception, e:
-                print 'eval:', name, "error"
-                print e
+                traceback.print_exc()
 
     def run_data(ch):
         for name, content in ch:
