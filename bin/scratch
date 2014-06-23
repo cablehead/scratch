@@ -12,8 +12,10 @@ Usage:
 __version__ = '0.0.1'
 
 
+from collections import OrderedDict
 import traceback
 import importlib
+import types
 import sys
 import os
 
@@ -93,20 +95,38 @@ def session(hub, path):
             print "loading", name
             local[name] = content
 
+    def run_code(ch):
+        for name, content in ch:
+            try:
+                print 'exec:', name
+                exec content in globals(), local
+            except Exception:
+                traceback.print_exc()
+
     def run_root(ch):
         for name, content in ch:
             if name == 'import':
                 for module in content.split('\n'):
                     print 'importing', module
-                    globals()[module] = importlib.import_module(module)
+                    if '.' in module:
+                        bits = module.split('.')
+                        name = bits[-1]
+                        module = '.'.join(bits[:-1])
+                        module = importlib.import_module(module, name)
+                        if type(module) == types.ModuleType:
+                            globals()[name] = getattr(module, name)
+                        else:
+                            globals()[name] = module
+                    else:
+                        globals()[module] = importlib.import_module(module)
 
-    folders = {
-        'eval': run_eval,
-        'data': run_data,
-        '': run_root,
-    }
+    folders = OrderedDict()
+    folders[''] = run_root
+    folders['data'] = run_data
+    folders['code'] = run_code
+    folders['eval'] = run_eval
 
-    for folder in ['', 'data', 'eval']:
+    for folder in folders:
         full = os.path.join(path, folder)
         mkdirp(os.path.join(full))
         hub.spawn(folders[folder], reader(full))
