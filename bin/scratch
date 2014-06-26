@@ -40,7 +40,7 @@ def read(*a):
 
 def iterate(hub, path, command):
     inot = hub.inotify()
-    ch = inot.watch(os.path.dirname(path), mask=inot.IN_MODIFY)
+    ch = inot.watch(os.path.dirname(path) or '.', mask=inot.IN_MODIFY)
     p = hub.process.execv(command)
     for mask, name in ch:
         if name == os.path.basename(path):
